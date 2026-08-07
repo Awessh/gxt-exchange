@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "GXT Exchange",
+    "slug": "gxt-exchange",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/icon.ico",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A0D12"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.gxtexchange.app",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "GXT Exchange uses Face ID to let you log in securely."
+      }
+    },
+    "android": {
+      "package": "com.gxtexchange.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.ico",
+        "backgroundColor": "#0A0D12"
+      }
+    },
+    "plugins": [
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "5bc29e53-2b40-4c90-be77-6f1c090a9e4f"
+      }
+    }
+  }
+}

@@ -1,0 +1,41 @@
+name: EAS Update
+
+# Publishes an OTA update via EAS Update every time main is pushed.
+# The Profile screen's "Check for updates" button pulls whatever was
+# published here — no app-store review needed for JS/asset-only changes.
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+  workflow_dispatch:
+    inputs:
+      message:
+        description: 'Update message'
+        required: false
+        default: 'Manual update'
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Set up EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Publish update
+        run: eas update --auto --non-interactive

@@ -12,7 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, radii, spacing } from '../../theme/colors';
 import { type } from '../../theme/typography';
-import { Button } from '../../components/DepositButton';
+import { Button } from '../../components/Button';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 

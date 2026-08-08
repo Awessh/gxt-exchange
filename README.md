@@ -97,3 +97,70 @@ This prototype is structured so the path to production is additive, not a rewrit
 - Icons: `@expo/vector-icons` (Ionicons) — swap for a custom icon set later if desired.
 - No third-party UI kit is used — every component is hand-built and owned, so there
   is no licensing or styling lock-in going into a real build.
+
+## Putting this on GitHub
+
+The project is already a git repo with one commit on `main`. To push it to GitHub:
+
+```bash
+# 1. Create an empty repo on github.com (no README/license — this project already has one)
+# 2. Point this local repo at it and push
+git remote add origin https://github.com/<your-username>/gxt-exchange.git
+git push -u origin main
+```
+
+From then on, work as usual: `git add -A && git commit -m "..." && git push`.
+
+`.gitignore` already excludes `node_modules/`, build output, and native credential
+files, so the repo stays small and nothing sensitive gets committed.
+
+## OTA updates (EAS Update) — how the "Check for updates" button works
+
+The Profile screen has a **Check for updates** button that uses `expo-updates` to
+pull down any JS/asset changes you've published, without going through App Store /
+Play Store review. This only works in a **real build** (dev-client, internal, or
+store build published via EAS) — it's intentionally a no-op in Expo Go or the web
+preview, where `Updates.isEnabled` is `false`.
+
+**One-time setup (already done in this project):**
+- `app.json` has `"runtimeVersion": { "policy": "appVersion" }` and `"updates.url"`
+  pointing at this project's EAS Update endpoint (project ID
+  `5bc29e53-2b40-4c90-be77-6f1c090a9e4f`, already present from your earlier `eas init`).
+- `eas.json` tags each build profile with an update **channel**
+  (`development` / `preview` / `production`), so a build only ever pulls updates
+  published to its own channel.
+- `expo-updates` is installed and added to the `plugins` array.
+
+**Day-to-day: publishing an update**
+
+```bash
+npx eas login                      # once per machine
+npx eas update --branch production --message "Fix presale banner copy"
+```
+
+Anyone running a `production`-channel build (TestFlight/Play internal track, or a
+store release) will see the update the next time they open the app and tap
+**Check for updates** in Profile — or automatically next launch, if you later wire
+`Updates.checkForUpdateAsync()` into `App.tsx` on startup instead of only on demand.
+
+**Rule of thumb for whether an OTA update is enough, or you need a new build:**
+- JS logic, styles, mock data, navigation, images → OTA update is fine.
+- New native module, permission, icon/splash, or a change to `app.json`'s native
+  config (bundle ID, plugins that touch native code) → needs a new `eas build` +
+  store submission; OTA can't ship that.
+
+**Bumping the version:** `version` in `app.json`/`package.json` (currently `1.0.0`)
+is the *store-facing* version — bump it for actual store releases (App Store/Play
+Store review), not for every OTA update. OTA updates are identified by their own
+update ID and channel, so you can ship many updates between version bumps.
+
+**Automating it:** `.github/workflows/eas-update.yml` runs `eas update --auto` on
+every push to `main`, so merging to `main` publishes an update automatically. It
+needs one GitHub secret:
+1. Generate a token: `npx eas whoami` (log in first), then create a robot/access
+   token at https://expo.dev/accounts/<your-account>/settings/access-tokens.
+2. In the GitHub repo: **Settings → Secrets and variables → Actions → New repository
+   secret**, name it `EXPO_TOKEN`, paste the token.
+
+After that, every push to `main` publishes automatically — no manual `eas update`
+needed for routine changes.

@@ -10,12 +10,18 @@ export type MarketsStackParamList = {
   Trading: { coinId: string };
 };
 
+export type AssetsStackParamList = {
+  AssetsHome: undefined;
+  Deposit: undefined;
+  WalletFlow: { tab?: 'Transfer' | 'Send' | 'Withdraw' | 'History' } | undefined;
+};
+
 export type MainTabParamList = {
   Home: undefined;
-  Markets: NavigatorScreenParams<MarketsStackParamList>;
-  Trading: undefined;
+  Markets: undefined;
+  Trade: { coinId?: string } | undefined;
   Futures: undefined;
-  Wallet: undefined;
+  Assets: NavigatorScreenParams<AssetsStackParamList>;
   Profile: undefined;
 };
 

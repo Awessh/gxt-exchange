@@ -1,69 +1,110 @@
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { colors, radii, spacing } from '../../theme/colors';
 import { type } from '../../theme/typography';
-import { coins, portfolio, transactions } from '../../data/mockData';
-import { ScreenHeader, SectionHeader } from '../../components/Headers';
-import { CoinListItem } from '../../components/CoinListItem';
-import { Card } from '../../components/Card';
-import { Button } from '../../components/Button';
+import { coins, portfolio } from '../../data/mockData';
+import { gxtToken, assetActions } from '../../data/liveAppMockData';
+import { CoinIcon } from '../../components/CoinIcon';
+import { UnderlineTabs } from '../../components/UnderlineTabs';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { AssetsStackParamList } from '../../navigation/types';
 
-const txIcon: Record<string, keyof typeof Ionicons.glyphMap> = {
-  deposit: 'arrow-down-circle-outline',
-  withdraw: 'arrow-up-circle-outline',
-  buy: 'add-circle-outline',
-  sell: 'remove-circle-outline',
-  transfer: 'swap-horizontal-outline',
-};
+type Props = NativeStackScreenProps<AssetsStackParamList, 'AssetsHome'>;
 
-export const WalletScreen: React.FC = () => {
-  const heldCoins = coins.filter((c) => (c.balance ?? 0) > 0);
+const topTabs = ['Overview', 'Funding', 'Trading', 'Futures'] as const;
+const subTabs = ['Coin', 'Account', 'Ongoing'] as const;
+
+const assetList = [
+  { id: 'gxt', symbol: gxtToken.symbol, priceLabel: `$${gxtToken.price}`, balance: gxtToken.balance, usdValue: 49.49, color: gxtToken.color },
+  { id: 'usdt', symbol: 'USDT', priceLabel: '$1', balance: 0.5, usdValue: 0.5, color: '#26A17B' },
+  { id: 'bnb', symbol: 'BNB', priceLabel: '$591.92', balance: 0, usdValue: 0, color: '#F3BA2F' },
+  { id: 'btc', symbol: 'BTC', priceLabel: '$64,729.38', balance: 0, usdValue: 0, color: '#F7931A' },
+  { id: 'eth', symbol: 'ETH', priceLabel: '$1,910.39', balance: 0, usdValue: 0, color: '#8C9EFF' },
+  { id: 'sol', symbol: 'SOL', priceLabel: '$73.38', balance: 0, usdValue: 0, color: '#14F195' },
+  { id: 'usdc', symbol: 'USDC', priceLabel: '$1', balance: 0, usdValue: 0, color: '#2775CA' },
+];
+
+export const WalletScreen: React.FC<Props> = ({ navigation }) => {
+  const [topTab, setTopTab] = useState<(typeof topTabs)[number]>('Overview');
+  const [subTab, setSubTab] = useState<(typeof subTabs)[number]>('Coin');
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScreenHeader title="Wallet" subtitle="Manage your assets" />
+      <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.sm }}>
+        <UnderlineTabs options={[...topTabs]} value={topTab} onChange={(v) => setTopTab(v as any)} />
+      </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-        <Card style={styles.totalCard}>
-          <Text style={styles.totalLabel}>Estimated total value</Text>
-          <Text style={styles.totalValue}>${portfolio.totalBalanceUsd.toLocaleString(undefined, { maximumFractionDigits: 2 })}</Text>
-          <View style={styles.actionsRow}>
-            <Button label="Deposit" size="sm" icon={<Ionicons name="arrow-down" size={14} color={colors.textOnBrand} />} style={{ flex: 1 }} />
-            <Button label="Withdraw" size="sm" variant="secondary" icon={<Ionicons name="arrow-up" size={14} color={colors.textPrimary} />} style={{ flex: 1 }} />
-            <Button label="Transfer" size="sm" variant="secondary" icon={<Ionicons name="swap-horizontal" size={14} color={colors.textPrimary} />} style={{ flex: 1 }} />
+        <View style={styles.totalRow}>
+          <View style={{ flex: 1 }}>
+            <View style={styles.totalLabelRow}>
+              <Text style={styles.totalLabel}>Total Assets</Text>
+              <Ionicons name="eye-outline" size={14} color={colors.textSecondary} />
+            </View>
+            <Text style={styles.totalValue}>${portfolio.totalBalanceUsd.toFixed(2).slice(0, 5)}</Text>
+            <View style={styles.btcRow}>
+              <Text style={styles.btcValue}>≈ 0.00077227 BTC</Text>
+              <Ionicons name="chevron-down" size={13} color={colors.textSecondary} />
+            </View>
           </View>
-        </Card>
+          <LinearGradient
+            colors={['rgba(59,213,254,0)', 'rgba(59,213,254,0.35)']}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={styles.miniChart}
+          />
+        </View>
 
-        <View style={styles.section}>
-          <SectionHeader title="Your assets" actionLabel="Hide small balances" />
-          {heldCoins.map((c) => (
-            <CoinListItem key={c.id} coin={c} showSparkline={false} showBalance />
+        <View style={styles.actionsRow}>
+          {assetActions.map((a) => (
+            <Pressable
+              key={a.key}
+              style={styles.actionItem}
+              onPress={() => {
+                if (a.key === 'deposit') {
+                  navigation.navigate('Deposit');
+                } else {
+                  const tabMap: Record<string, 'Transfer' | 'Send' | 'Withdraw' | 'History'> = {
+                    send: 'Send',
+                    withdraw: 'Withdraw',
+                    transfer: 'Transfer',
+                    history: 'History',
+                  };
+                  navigation.navigate('WalletFlow', { tab: tabMap[a.key] });
+                }
+              }}
+            >
+              <View style={styles.actionCircle}>
+                <Ionicons name={a.icon as any} size={20} color={colors.textPrimary} />
+              </View>
+              <Text style={styles.actionLabel}>{a.label}</Text>
+            </Pressable>
           ))}
         </View>
 
-        <View style={styles.section}>
-          <SectionHeader title="Recent transactions" actionLabel="View all" />
-          {transactions.map((tx) => (
-            <View key={tx.id} style={styles.txRow}>
-              <View style={styles.txIconWrap}>
-                <Ionicons name={txIcon[tx.type]} size={18} color={colors.brand} />
+        <View style={styles.subTabsRow}>
+          <UnderlineTabs options={[...subTabs]} value={subTab} onChange={(v) => setSubTab(v as any)} />
+          <View style={{ flex: 1 }} />
+          <Ionicons name="options-outline" size={17} color={colors.textSecondary} style={{ marginRight: spacing.sm }} />
+          <Ionicons name="information-circle-outline" size={17} color={colors.textSecondary} />
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.txTitle}>
-                  {tx.type.charAt(0).toUpperCase() + tx.type.slice(1)} {tx.coinSymbol}
-                </Text>
-                <Text style={styles.txDate}>
-                  {new Date(tx.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · {tx.status}
-                </Text>
+
+        <View style={styles.listCard}>
+          {assetList.map((a, i) => (
+            <View key={a.id} style={[styles.row, i !== assetList.length - 1 && styles.rowBorder]}>
+              <CoinIcon symbol={a.symbol} color={a.color} size={34} />
+              <View style={styles.identity}>
+                <Text style={styles.symbol}>{a.symbol}</Text>
+                <Text style={styles.priceLabel}>{a.priceLabel}</Text>
               </View>
               <View style={{ alignItems: 'flex-end' }}>
-                <Text style={styles.txAmount}>
-                  {tx.type === 'withdraw' || tx.type === 'sell' ? '-' : '+'}
-                  {tx.amount} {tx.coinSymbol}
+                <Text style={styles.balance}>
+                  {a.balance === 0 ? '0' : a.balance.toLocaleString(undefined, { maximumFractionDigits: 8 })}
                 </Text>
-                <Text style={styles.txUsd}>${tx.usdValue.toLocaleString()}</Text>
+                <Text style={styles.usdValue}>${a.usdValue.toFixed(2)}</Text>
               </View>
             </View>
           ))}
@@ -75,23 +116,57 @@ export const WalletScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  scroll: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
-  totalCard: { alignItems: 'center', paddingVertical: spacing.lg, gap: spacing.md },
-  totalLabel: { ...type.caption, color: colors.textTertiary },
-  totalValue: { ...type.display, color: colors.textPrimary, fontWeight: '800' },
-  actionsRow: { flexDirection: 'row', gap: spacing.sm, width: '100%', marginTop: spacing.xs },
-  section: { marginTop: spacing.xl },
-  txRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm },
-  txIconWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: colors.brandGlow,
+  scroll: { paddingBottom: 100 },
+  totalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+  },
+  totalLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  totalLabel: { fontSize: 13, color: colors.textSecondary },
+  totalValue: { fontSize: 32, fontWeight: '600', color: colors.textPrimary, marginTop: 1 },
+  btcRow: { flexDirection: 'row', alignItems: 'center', gap: 2, marginTop: 1 },
+  btcValue: { fontSize: 12, color: colors.textSecondary },
+  miniChart: { width: 96, height: 45, borderRadius: radii.xs, marginTop: 4 },
+  actionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.xl,
+  },
+  actionItem: { alignItems: 'center', gap: 8, width: 56 },
+  actionCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  txTitle: { ...type.bodyMedium, color: colors.textPrimary, fontWeight: '700' },
-  txDate: { ...type.caption, color: colors.textTertiary, marginTop: 2, textTransform: 'capitalize' },
-  txAmount: { ...type.numericSm, color: colors.textPrimary, fontWeight: '700' },
-  txUsd: { ...type.caption, color: colors.textTertiary, marginTop: 2 },
+  actionLabel: { fontSize: 11.5, color: colors.textSecondary, fontWeight: '600' },
+  subTabsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.xl,
+  },
+  listCard: {
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.borderSubtle,
+    paddingHorizontal: spacing.md,
+  },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm + 3 },
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.borderSubtle },
+  identity: { flex: 1 },
+  symbol: { ...type.bodyMedium, color: colors.textPrimary, fontWeight: '700' },
+  priceLabel: { fontSize: 12, color: colors.textTertiary, marginTop: 2 },
+  balance: { ...type.bodyMedium, color: colors.textPrimary, fontWeight: '700' },
+  usdValue: { fontSize: 12, color: colors.textTertiary, marginTop: 2 },
 });

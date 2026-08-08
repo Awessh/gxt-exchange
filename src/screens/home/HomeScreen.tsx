@@ -1,129 +1,163 @@
-import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, View, Pressable } from 'react-native';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet, Text, View, Pressable, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { colors, radii, shadow, spacing } from '../../theme/colors';
+import { colors, radii, spacing } from '../../theme/colors';
 import { type } from '../../theme/typography';
 import { coins, portfolio } from '../../data/mockData';
-import { SectionHeader } from '../../components/Headers';
+import { presale, homeActionGrid } from '../../data/liveAppMockData';
 import { ChangeBadge } from '../../components/ChangeBadge';
 import { CoinIcon } from '../../components/CoinIcon';
-import { Sparkline } from '../../components/Sparkline';
-import { Card } from '../../components/Card';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { MainTabParamList } from '../../navigation/types';
-import type { CompositeScreenProps } from '@react-navigation/native';
+import { IconAction } from '../../components/IconAction';
+import { SegmentTabs } from '../../components/SegmentTabs';
+import { UnderlineTabs } from '../../components/UnderlineTabs';
+import { Button } from '../../components/Button';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { MainTabParamList } from '../../navigation/types';
+import { LinearGradient } from 'expo-linear-gradient';
 
 type Props = BottomTabScreenProps<MainTabParamList, 'Home'>;
 
-const quickActions: { key: string; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-  { key: 'deposit', label: 'Deposit', icon: 'arrow-down-circle-outline' },
-  { key: 'withdraw', label: 'Withdraw', icon: 'arrow-up-circle-outline' },
-  { key: 'buy', label: 'Buy', icon: 'add-circle-outline' },
-  { key: 'sell', label: 'Sell', icon: 'remove-circle-outline' },
-];
+const marketTabs = ['Hot', 'Gainers', 'Losers', 'New'] as const;
 
 export const HomeScreen: React.FC<Props> = ({ navigation }) => {
-  const trending = [...coins].sort((a, b) => b.change24h - a.change24h).slice(0, 5);
+  const [book, setBook] = useState<'Spot' | 'Futures'>('Spot');
+  const [marketTab, setMarketTab] = useState<(typeof marketTabs)[number]>('Hot');
   const positive = portfolio.todayChangeUsd >= 0;
+
+  const listed =
+    marketTab === 'Gainers'
+      ? [...coins].sort((a, b) => b.change24h - a.change24h)
+      : marketTab === 'Losers'
+      ? [...coins].sort((a, b) => a.change24h - b.change24h)
+      : marketTab === 'New'
+      ? [...coins].slice().reverse()
+      : coins;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Top bar */}
+      <View style={styles.topBar}>
+        <Pressable
+          onPress={() => navigation.navigate('Profile')}
+        >
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>A</Text>
+          </View>
+        </Pressable>
+        <Pressable style={styles.topIconBtn}>
+          <Ionicons name="notifications-outline" size={20} color={colors.textPrimary} />
+        </Pressable>
+        <View style={{ flex: 1 }} />
+        <Pressable style={styles.topIconBtn}>
+          <Ionicons name="headset-outline" size={20} color={colors.textPrimary} />
+        </Pressable>
+      </View>
+
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-        {/* Top bar */}
-        <View style={styles.topBar}>
-          <Pressable 
-            style={styles.userRow} 
-            onPress={() => navigation.navigate('Profile')}
-          >
-            <Image source={require('../../../assets/icon.png')} style={styles.logoMini} resizeMode="contain" />
-            <View>
-              <Text style={styles.greeting}>Good evening</Text>
-              <Text style={styles.username}>Jules Konan</Text>
+        <View style={{ paddingHorizontal: spacing.lg }}>
+          <SegmentTabs options={['Spot', 'Futures']} value={book} onChange={(v) => setBook(v as any)} />
+        </View>
+
+        {/* Search */}
+        <View style={styles.searchWrap}>
+          <Ionicons name="search-outline" size={18} color={colors.textTertiary} />
+          <TextInput
+            placeholder="Search spot pairs..."
+            placeholderTextColor={colors.textTertiary}
+            style={styles.searchInput}
+          />
+        </View>
+
+        {/* Total assets */}
+        <View style={styles.assetsRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.assetsLabel}>Total Assets (USD)</Text>
+            <Text style={styles.assetsValue}>${portfolio.totalBalanceUsd.toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,')}</Text>
+            <Text style={styles.assetsBtc}>≈ 0.00077251 BTC</Text>
+            <View style={styles.pnlRow}>
+              <Text style={[styles.pnlText, { color: positive ? colors.positive : colors.negative }]}>
+                PNL · {positive ? '+' : ''}${portfolio.todayChangeUsd.toFixed(2)} ({positive ? '+' : ''}
+                {portfolio.todayChangePercent.toFixed(2)}%) 1D
+              </Text>
+              <Ionicons name="chevron-up" size={14} color={colors.textTertiary} />
             </View>
-          </Pressable>
-          <View style={styles.topIcons}>
-            <Pressable style={styles.iconBtn}>
-              <Ionicons name="search-outline" size={20} color={colors.textPrimary} />
-            </Pressable>
-            <Pressable style={styles.iconBtn}>
-              <Ionicons name="notifications-outline" size={20} color={colors.textPrimary} />
-              <View style={styles.dot} />
-            </Pressable>
           </View>
+          <Button label="Deposit" size="sm" fullWidth={false} variant="secondary" style={styles.depositBtn} />
         </View>
 
-        {/* Portfolio card */}
-        <LinearGradient colors={['#12212A', '#0D1319']} style={[styles.portfolioCard, shadow.card]}>
-          <Text style={styles.portfolioLabel}>Total portfolio balance</Text>
-          <View style={styles.balanceRow}>
-            <Text style={styles.balance}>${portfolio.totalBalanceUsd.toLocaleString(undefined, { maximumFractionDigits: 2 })}</Text>
-            <Ionicons name="eye-outline" size={18} color={colors.textTertiary} />
-          </View>
-          <View style={styles.pnlRow}>
-            <ChangeBadge value={portfolio.todayChangePercent} size="md" />
-            <Text style={[styles.pnlUsd, { color: positive ? colors.positive : colors.negative }]}>
-              {positive ? '+' : '-'}${Math.abs(portfolio.todayChangeUsd).toLocaleString(undefined, { maximumFractionDigits: 2 })} today
-            </Text>
-          </View>
-
-          <View style={styles.quickActionsRow}>
-            {quickActions.map((a) => (
-              <Pressable key={a.key} style={styles.quickAction}>
-                <View style={styles.quickActionIcon}>
-                  <Ionicons name={a.icon} size={20} color={colors.brand} />
-                </View>
-                <Text style={styles.quickActionLabel}>{a.label}</Text>
-              </Pressable>
-            ))}
-          </View>
-        </LinearGradient>
-
-        {/* Trending */}
-        <View style={styles.section}>
-          <SectionHeader title="Trending coins" actionLabel="See all" onAction={() => navigation.navigate('Markets', { screen: 'MarketsList' })} />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
-            {trending.map((c) => (
-              <Card key={c.id} style={styles.trendCard}>
-                <View style={styles.trendTop}>
-                  <CoinIcon symbol={c.symbol} color={c.color} size={30} />
-                  <ChangeBadge value={c.change24h} />
-                </View>
-                <Text style={styles.trendSymbol}>{c.symbol}</Text>
-                <Text style={styles.trendPrice}>
-                  ${c.price >= 1 ? c.price.toLocaleString(undefined, { maximumFractionDigits: 2 }) : c.price.toFixed(4)}
+        {/* Presale banner */}
+        <Pressable style={styles.presaleCard}>
+          <LinearGradient
+            colors={['rgba(59, 161, 198, 0.55)', 'rgba(19, 57, 71, 0.25)', '#0A0A0A']}
+            locations={[0, 0.25, 0.55, 1]}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+          >
+            <View style={styles.presaleTop}>
+              <View style={styles.presaleDot} />
+              <Text style={styles.presaleTitle}>GXT Presale {presale.stage} · {presale.status}</Text>
+            </View>
+            <View style={styles.presaleBottom}>
+              <View>
+                <Text style={styles.presalePrice}>
+                  <Text style={styles.presaleInitial}>${presale.price.toFixed(2)}</Text> <Text style={styles.presaleArrow}>→ listing</Text> ${presale.listingPrice.toFixed(2)}
                 </Text>
-                <Sparkline data={c.sparkline} color={c.change24h >= 0 ? colors.positive : colors.negative} width={110} height={32} filled />
-              </Card>
-            ))}
-          </ScrollView>
+                <View style={styles.bonusPill}>
+                  <Text style={styles.bonusText}>
+                      Buy ${presale.bonusThresholdUsd}+ get +{presale.bonusPercent}% bonus
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.buyNowBtn}>
+                <Text style={styles.buyNowText}>Buy now</Text>
+                <Ionicons name="arrow-forward" size={14} color={colors.black} />
+              </View>
+            </View>
+          </LinearGradient>
+        </Pressable>
+
+        {/* Action grid */}
+        <View style={styles.grid}>
+          {homeActionGrid.map((a) => (
+            <IconAction
+              key={a.key}
+              icon={a.icon as any}
+              label={a.label}
+              tag={a.tag}
+              style={styles.gridItem}
+            />
+          ))}
         </View>
 
-        {/* Market overview */}
-        <View style={styles.section}>
-          <SectionHeader title="Market overview" actionLabel="Markets" onAction={() => navigation.navigate('Markets', { screen: 'MarketsList' })} />
-          <View style={styles.overviewGrid}>
-            <Card style={styles.overviewCard}>
-              <Ionicons name="stats-chart-outline" size={18} color={colors.brand} />
-              <Text style={styles.overviewLabel}>Market cap</Text>
-              <Text style={styles.overviewValue}>$2.41T</Text>
-              <ChangeBadge value={1.8} />
-            </Card>
-            <Card style={styles.overviewCard}>
-              <Ionicons name="water-outline" size={18} color={colors.brand} />
-              <Text style={styles.overviewLabel}>24h volume</Text>
-              <Text style={styles.overviewValue}>$98.6B</Text>
-              <ChangeBadge value={-4.2} />
-            </Card>
-            <Card style={styles.overviewCard}>
-              <Ionicons name="pie-chart-outline" size={18} color={colors.brand} />
-              <Text style={styles.overviewLabel}>BTC dominance</Text>
-              <Text style={styles.overviewValue}>51.2%</Text>
-              <ChangeBadge value={0.4} />
-            </Card>
+        {/* Market tabs */}
+        <View style={{ marginTop: spacing.lg }}>
+          <UnderlineTabs options={[...marketTabs]} value={marketTab} onChange={(v) => setMarketTab(v as any)} scrollable />
+        </View>
+
+        <View style={styles.listWrap}>
+          {listed.map((c) => (
+            <Pressable
+              key={c.id}
+              style={styles.coinRow}
+              onPress={() => navigation.navigate('Trade', { coinId: c.id })}
+            >
+              <CoinIcon symbol={c.symbol} color={c.color} size={34} />
+              <View style={styles.coinIdentity}>
+                <Text style={styles.coinSymbol}>{c.symbol}/USDT</Text>
+                <Text style={styles.coinVol}>Vol {(c.price * 3.2).toFixed(0)}M</Text>
+              </View>
+              <View style={{ alignItems: 'flex-end' }}>
+                <Text style={styles.coinPrice}>
+                  {c.price.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
+                </Text>
+                <Text style={[styles.coinChange, { color: c.change24h >= 0 ? colors.positive : colors.negative }]}>
+                  {c.change24h >= 0 ? '+' : ''}
+                  {c.change24h.toFixed(2)}%
+                </Text>
           </View>
+            </Pressable>
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -132,71 +166,119 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  scroll: { paddingBottom: spacing.xxl },
+  scroll: { paddingBottom: 100 },
   topBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
+    gap: spacing.sm,
   },
-  userRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  logoMini: { width: 34, height: 34, borderRadius: 8 },
-  greeting: { ...type.caption, color: colors.textTertiary },
-  username: { ...type.bodyMedium, color: colors.textPrimary, fontWeight: '700' },
-  topIcons: { flexDirection: 'row', gap: spacing.sm },
-  iconBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: colors.surface,
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.brand,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dot: {
-    position: 'absolute',
-    top: 8,
-    right: 9,
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: colors.negative,
-  },
-  portfolioCard: {
+  avatarText: { color: colors.black, fontWeight: '800', fontSize: 15 },
+  topIconBtn: { padding: 4 },
+  searchWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: radii.pill,
     marginHorizontal: spacing.lg,
     marginTop: spacing.sm,
-    borderRadius: radii.xl,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.borderSubtle,
+    paddingHorizontal: spacing.md,
+    height: 44,
+    gap: spacing.xs,
   },
-  portfolioLabel: { ...type.caption, color: colors.textTertiary },
-  balanceRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: 6 },
-  balance: { ...type.display, color: colors.textPrimary, fontWeight: '800', fontSize: 32 },
-  pnlRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: 8 },
-  pnlUsd: { ...type.caption, fontWeight: '700' },
-  quickActionsRow: {
+  searchInput: { flex: 1, color: colors.textPrimary, ...type.body },
+  assetsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingHorizontal: spacing.lg,
     marginTop: spacing.lg,
   },
-  quickAction: { alignItems: 'center', gap: 6 },
-  quickActionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: colors.brandGlow,
-    alignItems: 'center',
-    justifyContent: 'center',
+  assetsLabel: { ...type.caption, color: colors.textTertiary },
+  assetsValue: { fontSize: 28, fontWeight: '600', color: colors.textPrimary, marginTop: 4 },
+  assetsBtc: { ...type.caption, color: colors.textSecondary, marginTop: 2 },
+  pnlRow: { flexDirection: 'row', alignItems: 'center', gap: 2, marginTop: spacing.xs },
+  pnlText: { ...type.caption, fontWeight: '700' },
+  depositBtn: {
+    backgroundColor: colors.white,
+    color: colors.textOnBrand,
+    borderWidth: 0,
+    paddingHorizontal: spacing.sm,
+    marginTop: spacing.xs,
   },
-  quickActionLabel: { ...type.caption, color: colors.textSecondary, fontWeight: '600' },
-  section: { marginTop: spacing.xl, paddingHorizontal: spacing.lg },
-  trendCard: { width: 130, marginRight: 0, gap: 6 },
-  trendTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  trendSymbol: { ...type.bodyMedium, color: colors.textPrimary, fontWeight: '700', marginTop: 6 },
-  trendPrice: { ...type.caption, color: colors.textSecondary },
-  overviewGrid: { flexDirection: 'row', gap: spacing.sm },
-  overviewCard: { flex: 1, gap: 6 },
-  overviewLabel: { ...type.caption, color: colors.textTertiary },
-  overviewValue: { ...type.bodyMedium, color: colors.textPrimary, fontWeight: '700' },
+  presaleCard: {
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.brandDim,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  presaleTop: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  presaleDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.brand },
+  presaleTitle: { ...type.caption, color: colors.textPrimary, fontWeight: '600' },
+  presaleBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  presalePrice: { fontSize: 13, color: colors.textPrimary, fontWeight: '600' },
+  presaleInitial: { color: colors.brand, fontWeight: '600' },
+  presaleArrow: { color: colors.textTertiary },
+  bonusPill: {
+    backgroundColor: colors.surfaceBrand,
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    marginTop: 6,
+    alignSelf: 'flex-start',
+  },
+  bonusText: { fontSize: 11, color: colors.brand, fontWeight: '600' },
+  buyNowBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.brand,
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+  },
+  buyNowText: { color: colors.black, fontWeight: '600', fontSize: 13 },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    rowGap: spacing.md,
+  },
+  gridItem: {
+    width: '25%',
+  },
+  listWrap: { 
+    backgroundColor: colors.brandLight,
+    paddingHorizontal: spacing.lg, 
+    marginTop: spacing.sm ,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  coinRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm + 2,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderSubtle,
+  },
+  coinIdentity: { flex: 1 },
+  coinSymbol: { ...type.bodyMedium, color: colors.textPrimary, fontWeight: '700' },
+  coinVol: { ...type.caption, color: colors.textTertiary, marginTop: 2, fontSize: 12 },
+  coinPrice: { ...type.bodyMedium, color: colors.textPrimary, fontWeight: '700' },
+  coinChange: { fontSize: 13, fontWeight: '700', marginTop: 2 },
 });

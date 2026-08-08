@@ -1,10 +1,11 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View, Pressable, Switch } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, Pressable, Switch, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radii, spacing } from '../../theme/colors';
 import { type } from '../../theme/typography';
 import { Card } from '../../components/Card';
+import { useAppUpdate } from '../../../src/hooks/useAppUpdate';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { MainTabParamList } from '../../navigation/types';
 import { useState } from 'react';
@@ -45,6 +46,8 @@ const menuGroups: {
 export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
   const [faceId, setFaceId] = useState(true);
   const [darkMode, setDarkMode] = useState(true);
+  const { state, checkForUpdate, currentVersion, channel } = useAppUpdate();
+  const checking = state === 'checking' || state === 'downloading';
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -121,7 +124,28 @@ export const ProfileScreen: React.FC<Props> = ({ navigation }) => {
           <Text style={styles.logoutText}>Log out</Text>
         </Pressable>
 
-        <Text style={styles.version}>GXT Exchange · v1.0.0 (Prototype)</Text>
+        <Card style={styles.updateCard}>
+          <View style={styles.updateRow}>
+            <View style={styles.updateIconWrap}>
+              <Ionicons name="cloud-download-outline" size={18} color={colors.brand} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.updateTitle}>App version</Text>
+              <Text style={styles.updateSubtitle}>
+                v{currentVersion} · {channel} channel
+              </Text>
+            </View>
+            <Pressable style={styles.updateBtn} onPress={checkForUpdate} disabled={checking}>
+              {checking ? (
+                <ActivityIndicator size="small" color={colors.black} />
+              ) : (
+                <Text style={styles.updateBtnText}>Check for updates</Text>
+              )}
+            </Pressable>
+          </View>
+        </Card>
+
+        <Text style={styles.version}>GXT Exchange · v{currentVersion} (Prototype)</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -179,5 +203,27 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   logoutText: { ...type.bodyMedium, color: colors.negative, fontWeight: '700' },
+  updateCard: { marginTop: spacing.lg },
+  updateRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  updateIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.brandGlow,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  updateTitle: { ...type.bodyMedium, color: colors.textPrimary, fontWeight: '700' },
+  updateSubtitle: { ...type.caption, color: colors.textTertiary, marginTop: 2, textTransform: 'capitalize' },
+  updateBtn: {
+    backgroundColor: colors.brand,
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 9,
+    minWidth: 92,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  updateBtnText: { fontSize: 12.5, fontWeight: '800', color: colors.black },
   version: { ...type.caption, color: colors.textTertiary, textAlign: 'center', marginTop: spacing.lg },
 });

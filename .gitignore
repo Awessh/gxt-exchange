@@ -1,0 +1,47 @@
+node_modules/
+.expo/
+dist/
+web-build/
+TEST/
+expo-env.d.ts
+
+# Native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# macOS
+.DS_Store
+
+# Xcode / iOS
+ios/Pods/
+ios/build/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+
+# Android
+android/.gradle/
+android/app/build/
+android/build/
+*.hprof
+local.properties
+
+# Metro
+.metro-health-check*
+
+# Logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.log
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# EAS
+credentials.json

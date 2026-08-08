@@ -40,7 +40,6 @@ const styles = StyleSheet.create({
     height: 260,
     borderRadius: 130,
     opacity: 0.14,
-    shadowColor: colors.brand,
     shadowOpacity: 0.6,
     shadowRadius: 60,
   },

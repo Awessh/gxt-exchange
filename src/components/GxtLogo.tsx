@@ -79,6 +79,8 @@ export const GxtLogo: React.FC<Props> = ({
       {/* Icône + wordmark "GXT EXCHANGE" */}
       <AnimatedG
         opacity={markOpacity}
+        // @ts-ignore — react-native-svg's Animated G accepts a style/transform prop at runtime;
+        // the type defs for AnimatedProps<G> don't expose it, so we bypass the check here.
         style={{
           transform: [{ scale: markScale }],
         }}
@@ -148,6 +150,7 @@ export const GxtLogo: React.FC<Props> = ({
       {/* Tagline "TRADE. INVEST. GROW." en couleur de marque */}
       <AnimatedG
         opacity={taglineOpacity}
+        // @ts-ignore — see note above on the mark's AnimatedG
         style={{
           transform: [{ translateY: taglineTranslateY }],
         }}

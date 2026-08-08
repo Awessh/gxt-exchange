@@ -25,9 +25,10 @@ interface ButtonProps {
   icon?: React.ReactNode;
   style?: ViewStyle;
   fullWidth?: boolean;
+  textColor?: string; 
 }
 
-export const Button: React.FC<ButtonProps> = ({
+export const DepositButton: React.FC<ButtonProps> = ({
   label,
   onPress,
   variant = 'primary',
@@ -37,6 +38,7 @@ export const Button: React.FC<ButtonProps> = ({
   icon,
   style,
   fullWidth = true,
+  textColor,
 }) => {
   const handlePress = () => {
     if (disabled || loading) return;
@@ -59,7 +61,7 @@ export const Button: React.FC<ButtonProps> = ({
   }[size];
 
   const content = (
-    <View style={styles.contentRow}>
+    <View style={[styles.contentRow, fullWidth && styles.contentRowFull]}>
       {loading ? (
         <ActivityIndicator color={variant === 'primary' ? colors.textOnBrand : colors.brand} />
       ) : (
@@ -73,6 +75,7 @@ export const Button: React.FC<ButtonProps> = ({
               variant === 'secondary' && { color: colors.textPrimary },
               variant === 'ghost' && { color: colors.brand },
               variant === 'danger' && { color: colors.white },
+              textColor && { color: textColor },
             ]}
           >
             {label}
@@ -139,13 +142,16 @@ const styles = StyleSheet.create({
     borderRadius: radii.md,
     alignItems: 'center',
     justifyContent: 'center',
+    alignSelf: 'flex-start',
   },
-  fullWidth: { width: '100%' },
+  fullWidth: { width: '100%', alignSelf: 'stretch' },
   contentRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
+  },
+  contentRowFull: {
     width: '100%',
   },
   label: {

@@ -11,7 +11,7 @@ import { CoinIcon } from '../../components/CoinIcon';
 import { IconAction } from '../../components/IconAction';
 import { SegmentTabs } from '../../components/SegmentTabs';
 import { UnderlineTabs } from '../../components/UnderlineTabs';
-import { Button } from '../../components/Button';
+import { DepositButton } from '../../components/DepositButton';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { MainTabParamList } from '../../navigation/types';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -83,7 +83,7 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
               <Ionicons name="chevron-up" size={14} color={colors.textTertiary} />
             </View>
           </View>
-          <Button label="Deposit" size="md" fullWidth={false} variant="secondary" style={styles.depositBtn} textColor={colors.textOnBrand} />
+          <DepositButton label="Deposit" size="md" fullWidth={false} variant="secondary" style={styles.depositBtn} textColor={colors.textOnBrand} />
         </View>
 
         {/* Presale banner */}
@@ -226,6 +226,7 @@ const styles = StyleSheet.create({
   },
   linearGrad: {
     padding: spacing.md,
+    borderRadius: radii.lg,
   },
   presaleTop: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   presaleDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.brand },

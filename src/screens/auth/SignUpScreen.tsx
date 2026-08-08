@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radii, spacing } from '../../theme/colors';
 import { type } from '../../theme/typography';
-import { Button } from '../../components/Button';
+import { Button } from '../../components/DepositButton';
 import { TextField } from '../../components/TextField';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/types';

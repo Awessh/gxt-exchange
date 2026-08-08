@@ -23,6 +23,10 @@ export type MainTabParamList = {
   Futures: undefined;
   Assets: NavigatorScreenParams<AssetsStackParamList>;
   Profile: undefined;
+  Launchpad: undefined;
+  AirdropMining: { tab?: 'Airdrop' | 'Mining' } | undefined;
+  Invite: undefined;
+  Rewards: undefined;
 };
 
 export type RootStackParamList = {

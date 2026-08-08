@@ -6,14 +6,20 @@ import { colors, spacing } from '../theme/colors';
 interface BackHeaderProps {
   title: string;
   onBack: () => void;
+  icon?: keyof typeof Ionicons.glyphMap;
+  iconColor?: string;
+  right?: React.ReactNode;
 }
 
-export const BackHeader: React.FC<BackHeaderProps> = ({ title, onBack }) => (
+export const BackHeader: React.FC<BackHeaderProps> = ({ title, onBack, icon, iconColor = colors.brand, right }) => (
   <View style={styles.row}>
     <Pressable onPress={onBack} style={styles.backBtn} hitSlop={10}>
       <Ionicons name="arrow-back" size={20} color={colors.textPrimary} />
     </Pressable>
+    {icon && <Ionicons name={icon} size={20} color={iconColor} />}
     <Text style={styles.title}>{title}</Text>
+    <View style={{ flex: 1 }} />
+    {right}
   </View>
 );
 

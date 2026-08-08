@@ -83,7 +83,15 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
               <Ionicons name="chevron-up" size={14} color={colors.textTertiary} />
             </View>
           </View>
-          <DepositButton label="Deposit" size="md" fullWidth={false} variant="secondary" style={styles.depositBtn} textColor={colors.textOnBrand} />
+          <DepositButton 
+            label="Deposit" 
+            size="md" 
+            fullWidth={false} 
+            variant="secondary" 
+            style={styles.depositBtn} 
+            textColor={colors.textOnBrand} 
+            onPress={() => navigation.navigate('Assets', { screen: 'Deposit' })}
+          />
         </View>
 
         {/* Presale banner */}
@@ -127,6 +135,12 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
               label={a.label}
               tag={a.tag}
               style={styles.gridItem}
+              onPress={() => {
+                if (a.key === 'launchpad') navigation.navigate('Launchpad');
+                else if (a.key === 'mining') navigation.navigate('AirdropMining', { tab: 'Mining' });
+                else if (a.key === 'invite') navigation.navigate('Invite');
+                else if (a.key === 'rewards') navigation.navigate('Rewards');
+              }}
             />
           ))}
         </View>

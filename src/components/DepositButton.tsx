@@ -116,7 +116,7 @@ export const DepositButton: React.FC<ButtonProps> = ({
 
   return (
     <Pressable
-      onPress={handlePress}
+      onPress={handlePress} 
       disabled={disabled || loading}
       style={({ pressed }) => [
         styles.base,

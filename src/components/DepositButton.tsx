@@ -142,9 +142,8 @@ const styles = StyleSheet.create({
     borderRadius: radii.md,
     alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'flex-start',
   },
-  fullWidth: { width: '100%', alignSelf: 'stretch' },
+  fullWidth: { width: '100%' },
   contentRow: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -83,7 +83,7 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
               <Ionicons name="chevron-up" size={14} color={colors.textTertiary} />
             </View>
           </View>
-          <Button label="Deposit" size="sm" fullWidth={false} variant="secondary" style={styles.depositBtn} />
+          <Button label="Deposit" size="md" fullWidth={false} variant="secondary" style={styles.depositBtn} />
         </View>
 
         {/* Presale banner */}
@@ -93,6 +93,7 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
             locations={[0, 0.25, 0.55, 1]}
             start={{ x: 0, y: 0.5 }}
             end={{ x: 1, y: 0.5 }}
+            style={styles.linearGrad}
           >
             <View style={styles.presaleTop}>
               <View style={styles.presaleDot} />
@@ -136,10 +137,10 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
         </View>
 
         <View style={styles.listWrap}>
-          {listed.map((c) => (
+          {listed.map((c, i) => (
             <Pressable
               key={c.id}
-              style={styles.coinRow}
+              style={[styles.coinRow, i === listed.length - 1 && styles.coinRowLast]}
               onPress={() => navigation.navigate('Trade', { coinId: c.id })}
             >
               <CoinIcon symbol={c.symbol} color={c.color} size={34} />
@@ -198,7 +199,7 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, color: colors.textPrimary, ...type.body },
   assetsRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     paddingHorizontal: spacing.lg,
     marginTop: spacing.lg,
   },
@@ -211,8 +212,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     color: colors.textOnBrand,
     borderWidth: 0,
-    paddingHorizontal: spacing.sm,
-    marginTop: spacing.xs,
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.lg,
   },
   presaleCard: {
     marginHorizontal: spacing.lg,
@@ -221,8 +222,10 @@ const styles = StyleSheet.create({
     borderRadius: radii.lg,
     borderWidth: 1,
     borderColor: colors.brandDim,
-    padding: spacing.md,
     gap: spacing.sm,
+  },
+  linearGrad: {
+    padding: spacing.md,
   },
   presaleTop: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   presaleDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.brand },
@@ -230,7 +233,7 @@ const styles = StyleSheet.create({
   presaleBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   presalePrice: { fontSize: 13, color: colors.textPrimary, fontWeight: '600' },
   presaleInitial: { color: colors.brand, fontWeight: '600' },
-  presaleArrow: { color: colors.textTertiary },
+  presaleArrow: { color: colors.textSecondary },
   bonusPill: {
     backgroundColor: colors.surfaceBrand,
     borderRadius: radii.pill,
@@ -261,12 +264,13 @@ const styles = StyleSheet.create({
     width: '25%',
   },
   listWrap: { 
-    backgroundColor: colors.brandLight,
+    backgroundColor: colors.surface,
     paddingHorizontal: spacing.lg, 
-    marginTop: spacing.sm ,
+    marginTop: spacing.sm,
+    marginHorizontal: spacing.lg,
     borderRadius: radii.lg,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderSubtle,
   },
   coinRow: {
     flexDirection: 'row',
@@ -275,6 +279,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm + 2,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderSubtle,
+  },
+  coinRowLast: {
+    borderBottomWidth: 0,
   },
   coinIdentity: { flex: 1 },
   coinSymbol: { ...type.bodyMedium, color: colors.textPrimary, fontWeight: '700' },

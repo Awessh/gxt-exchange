@@ -83,7 +83,7 @@ export const HomeScreen: React.FC<Props> = ({ navigation }) => {
               <Ionicons name="chevron-up" size={14} color={colors.textTertiary} />
             </View>
           </View>
-          <Button label="Deposit" size="md" fullWidth={false} variant="secondary" style={styles.depositBtn} />
+          <Button label="Deposit" size="md" fullWidth={false} variant="secondary" style={styles.depositBtn} textColor={colors.textOnBrand} />
         </View>
 
         {/* Presale banner */}
@@ -226,6 +226,7 @@ const styles = StyleSheet.create({
   },
   linearGrad: {
     padding: spacing.md,
+    borderRadius: radii.lg,
   },
   presaleTop: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   presaleDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.brand },
